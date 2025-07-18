@@ -37,8 +37,11 @@ async function getAgentData() {
 
 async function getGptRecommendation(userInput, agents) {
   const prompt = `
-あなたはマッチングAIです。
-以下のエージェント情報を参考に、次のユーザーに最も適した1社を選び、名前と特徴を含めて提案文を作成してください。
+あなたは転職支援AIです。ユーザーの条件に合うエージェントを1社選んでください。
+選定基準は以下です：
+- 地域、年齢層、業界、特徴の一致度
+- ユーザーの要望とのマッチ率
+出力形式は「おすすめエージェント：○○（理由：〜〜）」としてください。
 
 ユーザー情報: ${userInput}
 
