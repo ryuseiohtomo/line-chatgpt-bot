@@ -33,12 +33,7 @@ async function getAgentData() {
     age: row[3],
     features: row[4]
   }));
-} catch (err) {
-    console.error('🔴 getAgentData エラー発生');
-    console.dir(err, { depth: null }); 
-    throw err;
-  }
-}
+} 
 
 async function getGptRecommendation(userInput, agents) {
   const prompt = `
