@@ -16,6 +16,7 @@ app.use(express.json());
 
 async function getAgentData() {
   const auth = new GoogleAuth({
+    keyFile: "credentials.json",
     scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
   });
 
