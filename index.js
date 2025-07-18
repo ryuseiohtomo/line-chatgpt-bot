@@ -42,7 +42,7 @@ async function getGptRecommendation(userInput, agents) {
 
 ユーザー情報: ${userInput}
 
-エージェント一覧:
+agents:
 ${agents.map(a => `名前: ${a.name}、得意分野: ${a.industry}、対応エリア: ${a.area}、年齢層: ${a.age}、特徴: ${a.features}`).join('\n')}
 `;
 
