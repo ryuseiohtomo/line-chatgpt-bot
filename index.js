@@ -42,7 +42,6 @@ async function getAgentData() {
   }));
 }
 
-// ✅ ChatGPTにTOP3エージェントを生成させる
 async function getGptRecommendation(userAnswers, agents) {
   const prompt = `
 あなたは転職支援に特化したマッチングAIです。
