@@ -58,7 +58,7 @@ module.exports = [
   },
   {
     type: 'text',
-    text: '6. 職種を教えてください',
+    text: '6. 希望職種を教えてください',
     quickReply: {
       items: [
         { type: 'action', action: { type: 'message', label: '営業', text: '営業' } },
@@ -70,7 +70,7 @@ module.exports = [
   },
   {
     type: 'text',
-    text: '7. あてはまるものを教えてください',
+    text: '7. 最もあてはまるものを教えてください',
     quickReply: {
       items: [
         { type: 'action', action: { type: 'message', label: '年収UP', text: '年収UP' } },
