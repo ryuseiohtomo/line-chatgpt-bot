@@ -14,7 +14,6 @@ const config = {
 };
 const client = new Client(config);
 app.use(express.json());
-app.use(middleware(config));
 
 async function getAgentData() {
   const auth = new GoogleAuth({
