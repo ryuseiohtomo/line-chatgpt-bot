@@ -3,18 +3,21 @@ const { Client, middleware } = require('@line/bot-sdk');
 const { GoogleAuth } = require('google-auth-library');
 const { google } = require('googleapis');
 const axios = require('axios');
-const { getNextStep, saveAnswer, getUserAnswers, resetUser } = require('./utils');
-const questions = require('./quickReplies');
-
+const quickReplies = require('./quickReplies');
+const {
+  getNextStep,
+  saveAnswer,
+  getUserAnswers,
+  resetUser
+} = require('./utils');
 require('dotenv').config();
 
 const app = express();
 const config = {
   channelAccessToken: process.env.LINE_ACCESS_TOKEN,
-  channelSecret: process.env.LINE_CHANNEL_SECRET,
+  channelSecret: process.env.LINE_CHANNEL_SECRET
 };
 const client = new Client(config);
-
 app.use(express.json());
 app.use(middleware(config));
 
@@ -23,82 +26,84 @@ async function getAgentData() {
     keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
     scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
   });
-
   const sheets = google.sheets({ version: 'v4', auth });
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.SHEET_ID,
-    range: 'agents!A2:H100',
+    range: 'エージェント一覧!A2:H',
   });
 
   return res.data.values.map(row => ({
-    name: row[0],            // A列：社名
-    age: row[1],             // B列：対応年齢
-    gender: row[2],          // C列：対応性別
-    area: row[3],            // D列：対応エリア
-    education: row[4],       // E列：学歴条件
-    experience: row[5],      // F列：経験社数条件
-    job: row[6],             // G列：対応職種
-    features: row[7]         // H列：特徴
+    name: row[0],
+    age: row[1],
+    gender: row[2],
+    area: row[3],
+    education: row[4],
+    experience: row[5],
+    jobType: row[6],
+    features: row[7],
   }));
 }
 
-async function getGptRecommendation(userAnswers, agents) {
+async function getGptRecommendation(userInput, agents) {
   const prompt = `
-あなたは転職支援に特化したマッチングAIです。
-以下のユーザー情報とエージェント一覧をもとに、条件に合致するエージェントを3社選び、簡単な特徴比較とおすすめ理由を含めて出力してください。
+あなたは転職エージェントのマッチングAIです。
+以下の求職者情報に基づき、条件に最もマッチするエージェントTOP3を選び、それぞれの特徴と理由を簡潔に説明してください。
+最後に「エージェントとの面談を予約しよう！」という一文で締めてください。
 
-【ユーザー情報】
-${userAnswers.join('
-')}
+【求職者情報】
+${userInput}
 
 【エージェント一覧】
-${agents.map(a => \`社名: \${a.name}｜対応年齢: \${a.age}｜対応性別: \${a.gender}｜対応エリア: \${a.area}｜学歴条件: \${a.education}｜経験社数条件: \${a.experience}｜対応職種: \${a.job}｜特徴: \${a.features}\`).join('\n')}
-
-出力フォーマット（例）：
-1. ◯◯エージェント：◯◯に強く、◯◯な方におすすめ。
-2. △△エージェント：◯◯対応で、◯◯な特徴あり。
-3. ××エージェント：◯◯希望の方に最適。
-
-最後に「気になるエージェントがあれば面談予約してみましょう！」という一文を添えてください。
+${agents.map(a => `■ ${a.name}｜年齢層: ${a.age}｜性別: ${a.gender}｜エリア: ${a.area}｜学歴: ${a.education}｜経験社数: ${a.experience}｜職種: ${a.jobType}｜特徴: ${a.features}`).join('
+')}
 `;
 
   const response = await axios.post('https://api.openai.com/v1/chat/completions', {
     model: 'gpt-3.5-turbo',
-    messages: [{ role: 'user', content: prompt }],
+    messages: [{ role: 'user', content: prompt }]
   }, {
     headers: {
       Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
+      'Content-Type': 'application/json'
+    }
   });
 
-  return response.data.choices[0].message.content.trim();
+  return response.data.choices[0].message.content;
 }
 
 app.post('/webhook', async (req, res) => {
   const events = req.body.events;
   for (const event of events) {
+    const userId = event.source.userId;
+
     if (event.type === 'message' && event.message.type === 'text') {
-      const userId = event.source.userId;
-      const userMessage = event.message.text;
-
+      const message = event.message.text;
       const step = getNextStep(userId);
-      saveAnswer(userId, step, userMessage);
 
-      if (step === 8) {
-        const answers = getUserAnswers(userId);
-        const agents = await getAgentData();
-        const reply = await getGptRecommendation(answers, agents);
-        await client.replyMessage(event.replyToken, { type: 'text', text: reply });
-        resetUser(userId);
+      if (step <= quickReplies.length) {
+        saveAnswer(userId, step, message);
+        await client.replyMessage(event.replyToken, quickReplies[step]);
       } else {
-        const nextQuestion = questions[step];
-        await client.replyMessage(event.replyToken, nextQuestion);
+        saveAnswer(userId, step, message);
+        const userAnswers = getUserAnswers(userId);
+        const formatted = `
+1. 年代: ${userAnswers[0]}
+2. 性別: ${userAnswers[1]}
+3. 希望勤務地: ${userAnswers[2]}
+4. 最終学歴: ${userAnswers[3]}
+5. 経験社数: ${userAnswers[4]}
+6. 職種: ${userAnswers[5]}
+7. 重視条件: ${userAnswers[6]}
+8. 転職理由: ${userAnswers[7]}
+        `;
+        const agents = await getAgentData();
+        const replyText = await getGptRecommendation(formatted, agents);
+        await client.replyMessage(event.replyToken, { type: 'text', text: replyText });
+        resetUser(userId);
       }
     }
   }
-  res.sendStatus(200);
+  res.send('ok');
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(\`Server running on \${PORT}\`));
+app.listen(3000);
