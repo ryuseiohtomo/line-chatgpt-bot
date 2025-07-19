@@ -81,7 +81,9 @@ app.post('/webhook', async (req, res) => {
 
       if (message === 'やり直す') {
     resetUser(userId);
-    await client.replyMessage(event.replyToken, {
+    const step = getNextStep(userId);
+    if (step === 1) {    
+    　await client.replyMessage(event.replyToken,quickReplies[0]);
       type: 'text',
       text: '最初の質問から再開します！',
     });
