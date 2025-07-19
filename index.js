@@ -80,11 +80,15 @@ app.post('/webhook', async (req, res) => {
       const message = event.message.text;
       const step = getNextStep(userId);
 
+     if (step === 1) {
+       await client.replyMessage(event.replyToken, quickReplies[0]);
+        return;
+      }
+        saveAnswer(userId, step - 1, message);
+      
       if (step <= quickReplies.length) {
-        saveAnswer(userId, step, message);
-        await client.replyMessage(event.replyToken, quickReplies[step]);
+        await client.replyMessage(event.replyToken, quickReplies[step - 1]);
       } else {
-        saveAnswer(userId, step, message);
         const userAnswers = getUserAnswers(userId);
         const formatted = `
 1. 年代: ${userAnswers[0]}
