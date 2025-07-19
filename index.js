@@ -29,7 +29,7 @@ async function getAgentData() {
   const sheets = google.sheets({ version: 'v4', auth });
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.SHEET_ID,
-    range: 'エージェント一覧!A2:H',
+    range: 'ajents!A2:H100',
   });
 
   return res.data.values.map(row => ({
