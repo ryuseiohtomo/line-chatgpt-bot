@@ -48,7 +48,7 @@ async function getGptRecommendation(userInput, agents) {
 【ユーザー情報】
 ${userInput}
 
-【エージェント一覧】
+【agents】
 ${agents.map(a => `社名: ${a.name}｜対応年齢: ${a.age}｜対応性別: ${a.gender}｜対応エリア: ${a.area}｜学歴条件: ${a.education}｜経験社数条件: ${a.experience}｜対応職種: ${a.jobType}｜特徴: ${a.features}`).join('\n')}
 `;
 
