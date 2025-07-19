@@ -78,6 +78,16 @@ app.post('/webhook', async (req, res) => {
 
     if (event.type === 'message' && event.message.type === 'text') {
       const message = event.message.text;
+
+      if (message === 'やり直す') {
+    resetUser(userId);
+    await client.replyMessage(event.replyToken, {
+      type: 'text',
+      text: '最初の質問から再開します！',
+    });
+    return;
+  }
+      
       const step = getNextStep(userId);
 
      if (step === 1) {
