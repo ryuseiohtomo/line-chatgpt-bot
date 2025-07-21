@@ -40,9 +40,10 @@ async function logUserAnswersToSheet(userId, answers) {
     spreadsheetId: process.env.SHEET_ID,
     range: '回答ログ!A1',
     valueInputOption: 'USER_ENTERED',
-    requestBody: { values }
-  });
-}
+    requestBody: {
+      values: [[timestamp, displayName, userId, `質問${step}`, message]]
+  },
+});
 
 async function getAgentData() {
   const auth = new GoogleAuth({
