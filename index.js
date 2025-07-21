@@ -26,14 +26,14 @@ async function logUserAnswersToSheet(userId, answers) {
   const values = [[
     new Date().toLocaleString('ja-JP'),
     userId,
-    answers[0], // 年代
-    answers[1], // 性別
-    answers[2], // 希望勤務地
-    answers[3], // 最終学歴
-    answers[4], // 経験社数
-    answers[5], // 職種
-    answers[6], // 当てはまるもの
-    answers[7], // 転職理由
+    answers[0],
+    answers[1],
+    answers[2],
+    answers[3],
+    answers[4],
+    answers[5],
+    answers[6],
+    answers[7],
   ]];
 
   await sheets.spreadsheets.values.append({
