@@ -114,11 +114,23 @@ app.post('/webhook', async (req, res) => {
 8. 転職理由: ${userAnswers[7]}
       `;
 
-      const agents = await getAgentData();
-      const replyText = await getGptRecommendation(formatted, agents);
+     const agents = await getAgentData();
+console.log("📊 エージェント件数:", agents.length);
 
-      await client.replyMessage(event.replyToken, { type: 'text', text: replyText });
-      resetUser(userId);
+const replyText = await getGptRecommendation(formatted, agents);
+console.log("💬 GPT応答:", replyText);
+
+try {
+  await client.replyMessage(event.replyToken, {
+    type: 'text',
+    text: replyText,
+  });
+  console.log("✅ LINE返信成功");
+} catch (e) {
+  console.error("❌ LINE返信エラー:", e.response?.data || e.message);
+}
+
+resetUser(userId);
     }
   }
 
