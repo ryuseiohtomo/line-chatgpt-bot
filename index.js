@@ -173,4 +173,6 @@ resetUser(userId);
   res.send('ok');
 });
 
-app.listen(3000);
+app.listen(3000, () => {
+  console.log('✅ サーバー起動中 http://localhost:3000');
+});
