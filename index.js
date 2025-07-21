@@ -15,6 +15,35 @@ const config = {
 const client = new Client(config);
 app.use(express.json());
 
+async function logUserAnswersToSheet(userId, answers) {
+  const auth = new GoogleAuth({
+    keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
+    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+  });
+
+  const sheets = google.sheets({ version: 'v4', auth });
+
+  const values = [[
+    new Date().toLocaleString('ja-JP'),
+    userId,
+    answers[0], // 年代
+    answers[1], // 性別
+    answers[2], // 希望勤務地
+    answers[3], // 最終学歴
+    answers[4], // 経験社数
+    answers[5], // 職種
+    answers[6], // 当てはまるもの
+    answers[7], // 転職理由
+  ]];
+
+  await sheets.spreadsheets.values.append({
+    spreadsheetId: process.env.SHEET_ID,
+    range: '回答ログ!A1',
+    valueInputOption: 'USER_ENTERED',
+    requestBody: { values }
+  });
+}
+
 async function getAgentData() {
   const auth = new GoogleAuth({
     keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
@@ -113,6 +142,8 @@ app.post('/webhook', async (req, res) => {
 7. 当てはまるもの: ${userAnswers[6]}
 8. 転職理由: ${userAnswers[7]}
       `;
+
+      await logUserAnswersToSheet(userId, userAnswers);
 
      const agents = await getAgentData();
 console.log("📊 エージェント件数:", agents.length);
